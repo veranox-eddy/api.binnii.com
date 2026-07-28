@@ -9,10 +9,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\DB;
 
 /*
  * A guardian's own journal entry about their child. Never surfaced to the
- * center — the staff-authored counterpart is Entry/Media.
+ * center — the staff-authored counterpart is Entry/Media, and nothing here
+ * carries a center_id or staff_id for an admin query to find.
  */
 #[Fillable([
     'child_id', 'guardian_id', 'title', 'description', 'entry_date',
@@ -49,16 +52,41 @@ class JournalEntry extends Model
         return $this->hasMany(JournalEntryMedia::class)->orderBy('sort_order');
     }
 
+    public function likes(): MorphMany
+    {
+        return $this->morphMany(Like::class, 'likeable');
+    }
+
     /**
-     * Entries this guardian may read: their own children's, minus the
-     * private ones another guardian on the same child wrote.
+     * API_05: the author always sees their own entry; another guardian on
+     * the same child sees it when it is not private, or when it is private
+     * and they hold `has_full_photo_access` on that child.
      *
      * @param  Builder<JournalEntry>  $query
      */
     public function scopeVisibleTo($query, Guardian $guardian): void
     {
-        $query->whereIn('child_id', $guardian->children()->select('children.id'))
-            ->where(fn ($q) => $q->where('is_private', false)
-                ->orWhere('guardian_id', $guardian->getKey()));
+        $linked = fn () => DB::table('child_guardian')->where('guardian_id', $guardian->getKey());
+
+        $query->whereIn('child_id', $linked()->select('child_id'))
+            ->where(fn ($q) => $q
+                ->where('guardian_id', $guardian->getKey())
+                ->orWhere('is_private', false)
+                ->orWhereIn('child_id', $linked()->where('has_full_photo_access', true)->select('child_id')));
+    }
+
+    public function isVisibleTo(Guardian $guardian): bool
+    {
+        if ($this->guardian_id === $guardian->getKey()) {
+            return true;
+        }
+
+        $access = $guardian->accessTo($this->child_id);
+
+        if ($access === null) {
+            return false;
+        }
+
+        return ! $this->is_private || (bool) $access['has_full_photo_access'];
     }
 }

@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChildController;
+use App\Http\Controllers\Api\JournalController;
+use App\Http\Controllers\Api\MediaController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -33,5 +35,18 @@ Route::prefix('v1')->group(function () {
         Route::get('children', [ChildController::class, 'index']);
         Route::get('children/{child}', [ChildController::class, 'show']);
         Route::put('children/{child}', [ChildController::class, 'update']);
+
+        Route::get('children/{child}/journal', [JournalController::class, 'feed']);
+        Route::get('children/{child}/entries', [JournalController::class, 'entries']);
+        Route::post('children/{child}/journal-entries', [JournalController::class, 'store']);
+
+        Route::get('journal-entries/{journalEntry}', [JournalController::class, 'show']);
+        Route::put('journal-entries/{journalEntry}', [JournalController::class, 'update']);
+        Route::delete('journal-entries/{journalEntry}', [JournalController::class, 'destroy']);
+        Route::post('journal-entries/{journalEntry}/share', [JournalController::class, 'share']);
+
+        // Named: the feed embeds this URL for every center photo instead of
+        // a public disk URL.
+        Route::get('media/{media}/download', [MediaController::class, 'download'])->name('api.media.download');
     });
 });
