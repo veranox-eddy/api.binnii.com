@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ChildController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -25,5 +26,12 @@ Route::prefix('v1')->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout']);
         Route::post('auth/refresh', [AuthController::class, 'refresh']);
         Route::get('auth/me', [AuthController::class, 'me']);
+
+        // The profile update carries a photo, and PHP does not parse
+        // multipart bodies on a real PUT — the SPA posts it with
+        // `_method=PUT`, which Laravel routes here.
+        Route::get('children', [ChildController::class, 'index']);
+        Route::get('children/{child}', [ChildController::class, 'show']);
+        Route::put('children/{child}', [ChildController::class, 'update']);
     });
 });

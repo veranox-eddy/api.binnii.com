@@ -7,6 +7,7 @@ use App\Notifications\GuardianResetPassword;
 use Database\Factories\GuardianFactory;
 use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
 use Illuminate\Auth\Passwords\CanResetPassword;
+use Illuminate\Contracts\Auth\Access\Authorizable as AuthorizableContract;
 use Illuminate\Contracts\Auth\Authenticatable as AuthenticatableContract;
 use Illuminate\Contracts\Auth\CanResetPassword as CanResetPasswordContract;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Foundation\Auth\Access\Authorizable;
 use Illuminate\Notifications\Notifiable;
 use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
 
@@ -31,10 +33,10 @@ use PHPOpenSourceSaver\JWTAuth\Contracts\JWTSubject;
     'receive_fewer_emails', 'email_language',
 ])]
 #[Hidden(['password', 'remember_token'])]
-class Guardian extends Model implements AuthenticatableContract, CanResetPasswordContract, JWTSubject
+class Guardian extends Model implements AuthenticatableContract, AuthorizableContract, CanResetPasswordContract, JWTSubject
 {
     /** @use HasFactory<GuardianFactory> */
-    use AuthenticatableTrait, CanResetPassword, HasFactory, Notifiable;
+    use AuthenticatableTrait, Authorizable, CanResetPassword, HasFactory, Notifiable;
 
     /**
      * Relationship options offered by db-add-child.html's emergency contact
@@ -49,6 +51,16 @@ class Guardian extends Model implements AuthenticatableContract, CanResetPasswor
     public const array RELATIONSHIPS = [
         'Spouse', 'Parent/Guardian', 'Grandparent', 'Sibling', 'Aunt/Uncle',
         'Family member', 'Friend', 'Nanny', 'Primary healthcare practitioner', 'Other',
+    ];
+
+    /**
+     * The parent-facing list (API_04), kept separate from RELATIONSHIPS
+     * exactly as that constant's note asks. The Edit-Profile screen offers
+     * only Parent / Guardian / Other, but Crew invites use the full set, so
+     * both write through this one list.
+     */
+    public const array CREW_RELATIONSHIPS = [
+        'Parent', 'Guardian', 'Caregiver', 'Grandparent', 'Aunt/Uncle', 'Cousin', 'Friend', 'Other',
     ];
 
     protected $attributes = [

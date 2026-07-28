@@ -7,13 +7,16 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * A child as the guardian's own roster shows them. `access` comes from the
- * `child_guardian` pivot, so this resource is only ever built from a
- * relation loaded through the authenticated guardian.
+ * The full child profile (S04/S05).
+ *
+ * `center_email` is deliberately absent: it belongs to API_02 M6, the
+ * email-to-journal address, which is not part of v1. The SPA hides the
+ * Profile email field when the key is missing — adding the column later is
+ * what should bring the key back.
  *
  * @mixin Child
  */
-class ChildSummaryResource extends JsonResource
+class ChildResource extends JsonResource
 {
     /**
      * @return array<string, mixed>
@@ -21,26 +24,31 @@ class ChildSummaryResource extends JsonResource
     public function toArray(Request $request): array
     {
         $classroom = $this->activeEnrollment()?->classroom;
+        $pivot = $this->pivot;
 
         return [
             'id' => $this->id,
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
-            // first_name/last_name are still sent in full — this is the
-            // center's chosen presentation, not a redaction.
             'display_name' => $this->displayName($this->center?->settings?->child_name_display),
-            'photo_url' => $this->photoUrl(),
             'date_of_birth' => $this->date_of_birth?->toDateString(),
+            'birthday_formatted' => $this->date_of_birth?->format('M j, Y'),
             'age_string' => $this->ageString($this->center?->now()),
             'gender' => $this->gender?->value,
-            'center_id' => $this->center_id,
+            'photo_url' => $this->photoUrl(),
+            'photo_consent' => (bool) $this->photo_consent,
             'classroom' => $classroom ? [
                 'id' => $classroom->id,
                 'name' => $classroom->name,
             ] : null,
+            'my_relationship' => [
+                'type' => $pivot?->type,
+                'relationship' => $pivot?->relationship,
+                'nickname' => $pivot?->nickname,
+            ],
             'access' => [
-                'is_account_admin' => (bool) $this->pivot?->is_account_admin,
-                'has_full_photo_access' => (bool) ($this->pivot?->has_full_photo_access ?? true),
+                'is_account_admin' => (bool) $pivot?->is_account_admin,
+                'has_full_photo_access' => (bool) ($pivot?->has_full_photo_access ?? true),
             ],
         ];
     }
