@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\JournalController;
 use App\Http\Controllers\Api\LikeController;
 use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\MilestoneController;
+use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SettingsController;
 use Illuminate\Support\Facades\Route;
 
@@ -50,6 +51,7 @@ Route::prefix('v1')->group(function () {
         Route::delete('children/{child}/crew/{guardian}', [CrewController::class, 'destroy']);
 
         Route::get('children/{child}/calendar', [CalendarController::class, 'index']);
+        Route::get('children/{child}/reports', [ReportController::class, 'show']);
 
         Route::get('children/{child}/milestones', [MilestoneController::class, 'index']);
         Route::put('children/{child}/milestones', [MilestoneController::class, 'upsert']);
