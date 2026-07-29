@@ -53,6 +53,27 @@ class Conversation extends Model
         return $this->hasMany(Message::class)->orderBy('created_at');
     }
 
+    /**
+     * Threads this guardian belongs to — the parent API's whole world
+     * (API_09).
+     *
+     * @param  Builder<Conversation>  $query
+     */
+    public function scopeForGuardian(Builder $query, Guardian $guardian): void
+    {
+        $query->whereHas('participants', fn ($q) => $q
+            ->where('participant_type', 'guardian')
+            ->where('participant_id', $guardian->getKey()));
+    }
+
+    public function hasGuardianParticipant(Guardian $guardian): bool
+    {
+        return $this->participants()
+            ->where('participant_type', 'guardian')
+            ->where('participant_id', $guardian->getKey())
+            ->exists();
+    }
+
     /** Display names of guardian participants (the "To" line). */
     public function participantNames(): string
     {

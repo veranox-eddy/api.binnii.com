@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChildController;
 use App\Http\Controllers\Api\CommentController;
+use App\Http\Controllers\Api\ConversationController;
 use App\Http\Controllers\Api\CrewController;
 use App\Http\Controllers\Api\JournalController;
 use App\Http\Controllers\Api\LikeController;
@@ -72,5 +73,11 @@ Route::prefix('v1')->group(function () {
         // own the SPA ever sees.
         Route::post('likes', [LikeController::class, 'store']);
         Route::delete('likes', [LikeController::class, 'destroy']);
+
+        Route::get('conversations', [ConversationController::class, 'index']);
+        Route::post('conversations', [ConversationController::class, 'store']);
+        Route::get('conversations/{conversation}', [ConversationController::class, 'show']);
+        Route::post('conversations/{conversation}/reply', [ConversationController::class, 'reply']);
+        Route::post('conversations/{conversation}/archive', [ConversationController::class, 'archive']);
     });
 });
