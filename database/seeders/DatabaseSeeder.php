@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             HealthSeeder::class,
             CurriculumSeeder::class,
             ConfigurationSeeder::class,
+            MilestoneDefinitionSeeder::class,
         ]);
     }
 }

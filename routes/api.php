@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\CrewController;
 use App\Http\Controllers\Api\JournalController;
 use App\Http\Controllers\Api\LikeController;
 use App\Http\Controllers\Api\MediaController;
+use App\Http\Controllers\Api\MilestoneController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -44,6 +45,10 @@ Route::prefix('v1')->group(function () {
         Route::get('children/{child}/crew/{guardian}', [CrewController::class, 'show']);
         Route::put('children/{child}/crew/{guardian}', [CrewController::class, 'update']);
         Route::delete('children/{child}/crew/{guardian}', [CrewController::class, 'destroy']);
+
+        Route::get('children/{child}/milestones', [MilestoneController::class, 'index']);
+        Route::put('children/{child}/milestones', [MilestoneController::class, 'upsert']);
+        Route::post('children/{child}/milestones/custom', [MilestoneController::class, 'storeCustom']);
 
         Route::get('children/{child}/journal', [JournalController::class, 'feed']);
         Route::get('children/{child}/entries', [JournalController::class, 'entries']);
