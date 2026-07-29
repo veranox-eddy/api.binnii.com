@@ -168,6 +168,8 @@ class JournalFeed
     private function hydrateJournal(Collection $rows): Collection
     {
         return JournalEntry::with(['media', 'guardian'])
+            ->withCount(['comments', 'likes'])
+            ->withExists($this->myLike())
             ->whereKey($this->idsOf($rows, 'journal_entry'))
             ->get()
             ->keyBy('id');
@@ -182,11 +184,18 @@ class JournalFeed
     /** @return Collection<int, Media> */
     private function hydrateMedia(Collection $rows): Collection
     {
-        return Media::withCount('comments')
+        return Media::withCount(['comments', 'likes'])
+            ->withExists($this->myLike())
             ->with('uploader')
             ->whereKey($this->idsOf($rows, 'media'))
             ->get()
             ->keyBy('id');
+    }
+
+    /** @return array<string, \Closure> */
+    private function myLike(): array
+    {
+        return ['likes as liked_by_me' => fn ($q) => $q->where('guardian_id', $this->guardian->getKey())];
     }
 
     /** @return array<int, int> */
@@ -215,9 +224,9 @@ class JournalFeed
                 'url' => $item->url,
                 'thumb_url' => $item->url,
             ])->all(),
-            // Journal-entry comments arrive with API_06 — the `comments`
-            // table has no column that can point at one yet.
-            'comment_count' => 0,
+            'comment_count' => $entry->comments_count,
+            'likes_count' => $entry->likes_count,
+            'liked_by_me' => (bool) $entry->liked_by_me,
         ];
     }
 
@@ -237,6 +246,8 @@ class JournalFeed
             'is_milestone' => false,
             'media' => [],
             'comment_count' => 0,
+            'likes_count' => 0,
+            'liked_by_me' => false,
         ];
     }
 
@@ -263,6 +274,8 @@ class JournalFeed
                 'thumb_url' => route('api.media.download', $media),
             ]],
             'comment_count' => $media->comments_count,
+            'likes_count' => $media->likes_count,
+            'liked_by_me' => (bool) $media->liked_by_me,
         ];
     }
 

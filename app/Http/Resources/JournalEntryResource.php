@@ -34,9 +34,9 @@ class JournalEntryResource extends JsonResource
                 'name' => $isAuthor ? 'Me' : $this->guardian?->fullName(),
             ],
             'media' => JournalEntryMediaResource::collection($this->whenLoaded('media')),
-            // See JournalFeed: nothing in `comments` can reference a journal
-            // entry until API_06 settles that schema.
-            'comment_count' => 0,
+            'comment_count' => (int) ($this->comments_count ?? 0),
+            'likes_count' => (int) ($this->likes_count ?? 0),
+            'liked_by_me' => (bool) ($this->liked_by_me ?? false),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

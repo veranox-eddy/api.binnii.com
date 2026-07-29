@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChildController;
+use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\JournalController;
+use App\Http\Controllers\Api\LikeController;
 use App\Http\Controllers\Api\MediaController;
 use Illuminate\Support\Facades\Route;
 
@@ -48,5 +50,15 @@ Route::prefix('v1')->group(function () {
         // Named: the feed embeds this URL for every center photo instead of
         // a public disk URL.
         Route::get('media/{media}/download', [MediaController::class, 'download'])->name('api.media.download');
+
+        Route::get('media/{media}/comments', [CommentController::class, 'forMedia']);
+        Route::get('journal-entries/{journalEntry}/comments', [CommentController::class, 'forJournalEntry']);
+        Route::post('comments', [CommentController::class, 'store']);
+        Route::delete('comments/{comment}', [CommentController::class, 'destroy']);
+
+        // DELETE carries the same body as POST — a like has no id of its
+        // own the SPA ever sees.
+        Route::post('likes', [LikeController::class, 'store']);
+        Route::delete('likes', [LikeController::class, 'destroy']);
     });
 });

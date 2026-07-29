@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 
-#[Fillable(['parent_id', 'media_id', 'child_id', 'guardian_id', 'thread_subject', 'body', 'status'])]
+#[Fillable(['parent_id', 'media_id', 'journal_entry_id', 'child_id', 'guardian_id', 'thread_subject', 'body', 'status'])]
 class Comment extends Model
 {
     /** @use HasFactory<CommentFactory> */
@@ -40,6 +40,11 @@ class Comment extends Model
     public function media(): BelongsTo
     {
         return $this->belongsTo(Media::class);
+    }
+
+    public function journalEntry(): BelongsTo
+    {
+        return $this->belongsTo(JournalEntry::class);
     }
 
     public function child(): BelongsTo
@@ -69,6 +74,19 @@ class Comment extends Model
             ->whereHas('child', fn ($qq) => $qq->where('center_id', $centerId))
             ->orWhereHas('media', fn ($qq) => $qq->where('center_id', $centerId))
             ->orWhereHas('guardian', fn ($qq) => $qq->where('center_id', $centerId)));
+    }
+
+    /**
+     * Everything a comment list row needs beyond its own columns: the author
+     * plus the viewer-dependent like state (API_06).
+     *
+     * @param  Builder<Comment>  $query
+     */
+    public function scopeWithEngagement(Builder $query, Guardian $guardian): void
+    {
+        $query->with('guardian')
+            ->withCount('likes')
+            ->withExists(['likes as liked_by_me' => fn ($q) => $q->where('guardian_id', $guardian->getKey())]);
     }
 
     /** Guardian comments carry a guardian; replies without one are the center's. */

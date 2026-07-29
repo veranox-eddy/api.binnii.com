@@ -13,6 +13,15 @@ use Illuminate\Auth\Access\Response;
  */
 class MediaPolicy
 {
+    /**
+     * Commenting and liking follow seeing: whoever may download a photo may
+     * also react to it (API_06).
+     */
+    public function view(Guardian $guardian, Media $media): Response
+    {
+        return $this->download($guardian, $media);
+    }
+
     public function download(Guardian $guardian, Media $media): Response
     {
         $childIds = $media->children()->pluck('children.id');

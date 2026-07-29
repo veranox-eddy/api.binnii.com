@@ -30,10 +30,11 @@ class Like extends Model
     }
 
     /**
-     * Toggle a guardian's like on media or a comment (unique per pair).
-     * Parents like from the parent app; this is the shared domain seam.
+     * Toggle a guardian's like on media, a comment, or a journal entry
+     * (unique per pair). Parents like from the parent app; this is the
+     * shared domain seam.
      */
-    public static function toggle(Guardian $guardian, Media|Comment $likeable): bool
+    public static function toggle(Guardian $guardian, Media|Comment|JournalEntry $likeable): bool
     {
         $existing = $likeable->likes()->where('guardian_id', $guardian->id)->first();
 

@@ -13,6 +13,7 @@ use App\Http\Resources\JournalEntryResource;
 use App\Models\Child;
 use App\Models\Guardian;
 use App\Models\JournalEntry;
+use App\Models\Like;
 use App\Services\JournalFeed;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -81,14 +82,14 @@ class JournalController extends Controller
             return $entry;
         });
 
-        return new JournalEntryResource($entry->load('media', 'guardian'));
+        return $this->present($entry);
     }
 
     public function show(JournalEntry $journalEntry): JournalEntryResource
     {
         $this->authorize('view', $journalEntry);
 
-        return new JournalEntryResource($journalEntry->load('media', 'guardian'));
+        return $this->present($journalEntry);
     }
 
     public function update(UpdateJournalEntryRequest $request, JournalEntry $journalEntry): JournalEntryResource
@@ -99,7 +100,7 @@ class JournalController extends Controller
             'title', 'description', 'entry_date', 'is_private', 'is_favorite', 'is_milestone',
         ]));
 
-        return new JournalEntryResource($journalEntry->load('media', 'guardian'));
+        return $this->present($journalEntry);
     }
 
     public function destroy(JournalEntry $journalEntry): Response
@@ -110,7 +111,19 @@ class JournalController extends Controller
         // remove them here or the disk keeps growing forever.
         $paths = $journalEntry->media->pluck('file_path')->all();
 
-        $journalEntry->delete();
+        DB::transaction(function () use ($journalEntry) {
+            // Comments and likes hold plain FKs / morph rows, not cascades:
+            // replies before parents, likes before their comments.
+            $comments = $journalEntry->comments();
+
+            Like::where('likeable_type', 'comment')->whereIn('likeable_id', $comments->select('id'))->delete();
+            $comments->clone()->whereNotNull('parent_id')->delete();
+            $comments->clone()->delete();
+            $journalEntry->likes()->delete();
+
+            $journalEntry->delete();
+        });
+
         Storage::disk('public')->delete($paths);
 
         return response()->noContent();
@@ -127,7 +140,17 @@ class JournalController extends Controller
                 : ! $journalEntry->is_private,
         ]);
 
-        return new JournalEntryResource($journalEntry->load('media', 'guardian'));
+        return $this->present($journalEntry);
+    }
+
+    /** One entry, ready for the wire: relations plus the viewer's like state. */
+    private function present(JournalEntry $entry): JournalEntryResource
+    {
+        return new JournalEntryResource(
+            $entry->load('media', 'guardian')
+                ->loadCount(['comments', 'likes'])
+                ->loadExists(['likes as liked_by_me' => fn ($q) => $q->where('guardian_id', $this->guardian()->getKey())]),
+        );
     }
 
     /** "Blank in the UI means today" — the center's today, not the server's. */

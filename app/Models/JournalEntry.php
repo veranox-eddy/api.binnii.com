@@ -57,6 +57,11 @@ class JournalEntry extends Model
         return $this->morphMany(Like::class, 'likeable');
     }
 
+    public function comments(): HasMany
+    {
+        return $this->hasMany(Comment::class);
+    }
+
     /**
      * API_05: the author always sees their own entry; another guardian on
      * the same child sees it when it is not private, or when it is private
