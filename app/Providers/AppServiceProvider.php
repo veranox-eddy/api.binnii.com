@@ -8,9 +8,11 @@ use App\Models\JournalEntry;
 use App\Models\Media;
 use App\Models\Staff;
 use App\Models\User;
+use App\Policies\CrewPolicy;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -41,6 +43,11 @@ class AppServiceProvider extends ServiceProvider
             'comment' => Comment::class,
             'journal_entry' => JournalEntry::class,
         ]);
+
+        // The Crew (API_07) authorizes against the child, not a Crew model,
+        // so it registers as gates instead of a model policy.
+        Gate::define('crew.view', [CrewPolicy::class, 'viewAny']);
+        Gate::define('crew.manage', [CrewPolicy::class, 'manage']);
 
         // Keyed by guardian rather than IP: a family behind one NAT would
         // otherwise share a single bucket. Unauthenticated hits (login,

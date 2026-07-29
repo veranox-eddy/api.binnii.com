@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ChildController;
 use App\Http\Controllers\Api\CommentController;
+use App\Http\Controllers\Api\CrewController;
 use App\Http\Controllers\Api\JournalController;
 use App\Http\Controllers\Api\LikeController;
 use App\Http\Controllers\Api\MediaController;
@@ -37,6 +38,12 @@ Route::prefix('v1')->group(function () {
         Route::get('children', [ChildController::class, 'index']);
         Route::get('children/{child}', [ChildController::class, 'show']);
         Route::put('children/{child}', [ChildController::class, 'update']);
+
+        Route::get('children/{child}/crew', [CrewController::class, 'index']);
+        Route::post('children/{child}/crew', [CrewController::class, 'store']);
+        Route::get('children/{child}/crew/{guardian}', [CrewController::class, 'show']);
+        Route::put('children/{child}/crew/{guardian}', [CrewController::class, 'update']);
+        Route::delete('children/{child}/crew/{guardian}', [CrewController::class, 'destroy']);
 
         Route::get('children/{child}/journal', [JournalController::class, 'feed']);
         Route::get('children/{child}/entries', [JournalController::class, 'entries']);
