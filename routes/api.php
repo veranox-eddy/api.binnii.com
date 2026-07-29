@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\JournalController;
 use App\Http\Controllers\Api\LikeController;
 use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\MilestoneController;
+use App\Http\Controllers\Api\SettingsController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -76,6 +77,12 @@ Route::prefix('v1')->group(function () {
         // own the SPA ever sees.
         Route::post('likes', [LikeController::class, 'store']);
         Route::delete('likes', [LikeController::class, 'destroy']);
+
+        Route::get('settings', [SettingsController::class, 'show']);
+        Route::put('settings/profile', [SettingsController::class, 'updateProfile']);
+        Route::put('settings/email', [SettingsController::class, 'updateEmail']);
+        Route::put('settings/password', [SettingsController::class, 'updatePassword']);
+        Route::put('settings/notifications', [SettingsController::class, 'updateNotifications']);
 
         Route::get('conversations', [ConversationController::class, 'index']);
         Route::post('conversations', [ConversationController::class, 'store']);
