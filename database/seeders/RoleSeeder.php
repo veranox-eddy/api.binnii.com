@@ -36,7 +36,9 @@ class RoleSeeder extends Seeder
         // Org admins carry every permission. Center Admin stays empty on
         // purpose: invited users get the Add-user form's toggles as DIRECT
         // permissions, so the role must not blanket-grant them.
-        Role::findByName('Org Admin')->syncPermissions(array_keys(self::PERMISSIONS));
-        Role::findByName('Teacher')->syncPermissions(['child-classroom-data']);
+        // Guard named explicitly: this app's default guard is `guardian`
+        // (parent API), and findByName falls back to the default.
+        Role::findByName('Org Admin', 'web')->syncPermissions(array_keys(self::PERMISSIONS));
+        Role::findByName('Teacher', 'web')->syncPermissions(['child-classroom-data']);
     }
 }
