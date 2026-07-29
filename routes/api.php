@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CalendarController;
 use App\Http\Controllers\Api\ChildController;
 use App\Http\Controllers\Api\CommentController;
 use App\Http\Controllers\Api\ConversationController;
@@ -46,6 +47,8 @@ Route::prefix('v1')->group(function () {
         Route::get('children/{child}/crew/{guardian}', [CrewController::class, 'show']);
         Route::put('children/{child}/crew/{guardian}', [CrewController::class, 'update']);
         Route::delete('children/{child}/crew/{guardian}', [CrewController::class, 'destroy']);
+
+        Route::get('children/{child}/calendar', [CalendarController::class, 'index']);
 
         Route::get('children/{child}/milestones', [MilestoneController::class, 'index']);
         Route::put('children/{child}/milestones', [MilestoneController::class, 'upsert']);
