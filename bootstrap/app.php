@@ -19,6 +19,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // guardian id, falling back to IP).
         $middleware->api(prepend: []);
         $middleware->throttleApi();
+        $middleware->alias([
+            'signup.intake.hmac' => \App\Http\Middleware\VerifySignupIntakeHmac::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

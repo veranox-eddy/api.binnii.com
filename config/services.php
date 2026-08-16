@@ -14,6 +14,13 @@ return [
     |
     */
 
+    // Internal signup-intake endpoint (signup.binnii.com push worker).
+    'signup_intake' => [
+        'secret' => env('SIGNUP_INTAKE_SECRET'),
+        'allowed_clients' => explode(',', (string) env('SIGNUP_INTAKE_CLIENTS', 'signup-1')),
+        'rate_per_hour' => (int) env('SIGNUP_INTAKE_RATE', 60),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

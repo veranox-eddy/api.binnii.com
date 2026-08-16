@@ -13,6 +13,7 @@ use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 
@@ -54,5 +55,22 @@ class AppServiceProvider extends ServiceProvider
         // activation) fall back to the IP.
         RateLimiter::for('api', fn (Request $request) => Limit::perMinute(60)
             ->by($request->user('guardian')?->getAuthIdentifier() ?: $request->ip()));
+
+        // Internal signup intake: a hard hourly cap per client. Hitting it
+        // is the FIRST signal that the signup host may be compromised —
+        // hence the critical log, not just a 429 (staged-registration spec
+        // §6.1 / §9.10).
+        RateLimiter::for('signup-intake', function (Request $request) {
+            return Limit::perHour((int) config('services.signup_intake.rate_per_hour', 60))
+                ->by((string) $request->header('X-Binnii-Client', $request->ip()))
+                ->response(function (Request $request) {
+                    Log::critical('Signup intake rate limit exceeded', [
+                        'client' => $request->header('X-Binnii-Client'),
+                        'ip' => $request->ip(),
+                    ]);
+
+                    return response()->json(['error' => 'rate_limited'], 429);
+                });
+        });
     }
 }

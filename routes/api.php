@@ -93,3 +93,21 @@ Route::prefix('v1')->group(function () {
         Route::post('conversations/{conversation}/archive', [ConversationController::class, 'archive']);
     });
 });
+
+/*
+|--------------------------------------------------------------------------
+| Internal signup intake (machine-to-machine, NOT part of the guardian API)
+|--------------------------------------------------------------------------
+|
+| Called only by the signup.binnii.com push worker. HMAC-authenticated
+| (+ mTLS and an nginx source-IP allowlist in production), hard hourly
+| rate limit with critical-log alerting. Deliberately absent from every
+| public API document.
+|
+*/
+
+Route::prefix('internal/v1')
+    ->middleware(['signup.intake.hmac', 'throttle:signup-intake'])
+    ->group(function () {
+        Route::get('health', [\App\Http\Controllers\Internal\SignupIntakeController::class, 'health']);
+    });
