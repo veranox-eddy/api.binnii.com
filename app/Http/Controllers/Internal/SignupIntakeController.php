@@ -80,6 +80,23 @@ class SignupIntakeController extends Controller
         ], 201);
     }
 
+    public function markets(): JsonResponse
+    {
+        // Exactly these six fields — never prices; the signup site has no
+        // business knowing them (§6.6).
+        return response()->json([
+            'markets' => \App\Models\Market::orderBy('code')->get()
+                ->map(fn ($market) => [
+                    'code' => $market->code,
+                    'name' => $market->name,
+                    'country_code' => $market->country_code,
+                    'currency' => $market->currency,
+                    'is_active' => $market->is_active,
+                    'is_fallback' => (bool) $market->is_fallback,
+                ]),
+        ]);
+    }
+
     public function health(): JsonResponse
     {
         return response()->json([

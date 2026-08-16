@@ -193,6 +193,22 @@ class SignupIntakeTest extends TestCase
         $this->assertSame(0, Subscription::count());
     }
 
+    public function test_markets_endpoint_returns_exactly_six_fields_and_no_prices(): void
+    {
+        $path = '/api/internal/v1/markets';
+
+        $response = $this->getJson($path, $this->intakeHeaders('GET', $path, '[]'))
+            ->assertOk()
+            ->assertJsonCount(1, 'markets');
+
+        $this->assertSame(
+            ['code', 'name', 'country_code', 'currency', 'is_active', 'is_fallback'],
+            array_keys($response->json('markets.0'))
+        );
+        $this->assertStringNotContainsString('fee', $response->getContent());
+        $this->assertStringNotContainsString('rate', $response->getContent());
+    }
+
     public function test_responses_never_leak_existing_customer_data_or_traces(): void
     {
         User::factory()->create(['email' => 'existing@example.test', 'name' => 'Secret Customer']);
