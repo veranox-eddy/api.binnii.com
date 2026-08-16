@@ -57,3 +57,20 @@ If you discover a security vulnerability within Laravel, please send an e-mail t
 
 The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
 # api.binnii.com
+
+## Internal signup intake (/api/internal/v1)
+
+Machine-to-machine endpoints for the signup.binnii.com push worker only —
+HMAC-authenticated (`SIGNUP_INTAKE_SECRET`, ≥64 random chars, same value on
+both hosts), per-client hourly rate limit with critical-log alerting, and
+an nginx source restriction per `deploy/nginx-internal.conf` (staging:
+loopback listener on 127.0.0.1:8082; production: source-IP allowlist +
+mTLS). These endpoints must never appear in any public API document.
+
+No MySQL migrations are ever added in this repo — the schema owner is
+app.binnii.com; tests build their sqlite schema from
+`database/schema/sqlite-schema.sql` (a dump of the console migrations —
+regenerate it there when the schema changes).
+
+`.env`: `SIGNUP_INTAKE_SECRET`, `SIGNUP_INTAKE_CLIENTS` (default signup-1),
+`SIGNUP_INTAKE_RATE` (default 60/hour).
