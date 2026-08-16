@@ -51,6 +51,7 @@ class User extends Authenticatable
             'type' => UserType::class,
             'access_level' => AccessLevel::class,
             'is_active' => 'boolean',
+            'email_verified_at' => 'datetime',
             'last_active_at' => 'datetime',
         ];
     }

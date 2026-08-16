@@ -109,5 +109,6 @@ Route::prefix('v1')->group(function () {
 Route::prefix('internal/v1')
     ->middleware(['signup.intake.hmac', 'throttle:signup-intake'])
     ->group(function () {
+        Route::post('signups', [\App\Http\Controllers\Internal\SignupIntakeController::class, 'store']);
         Route::get('health', [\App\Http\Controllers\Internal\SignupIntakeController::class, 'health']);
     });
